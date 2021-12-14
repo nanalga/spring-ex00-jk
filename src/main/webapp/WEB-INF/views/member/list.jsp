@@ -16,30 +16,41 @@
 <title>Insert title here</title>
 </head>
 <body>
- <!-- .container>.row>.col>h1{게시물 작성} -->
- <div class="container">
+ <b:navBar></b:navBar>
+ 
+ <!-- .conatainer>.row>.col>h1{회원목록} -->
+ <div class="conatainer">
  	<div class="row">
  		<div class="col">
- 			<h1>게시물 작성</h1>
- 			<!-- form>.form-group*3>label[for=input$]+input.form-control#input$ -->
- 			<form method="post">
- 				<div class="form-group">
- 					<label for="input1">제목</label>
- 					<input type="text" class="form-control" id="input1" name="title">
- 				</div>
- 				<div class="form-group">
- 					<label for="input2">내용</label>
- 					<textarea type="text" class="form-control" id="input2" name="content"></textarea>
- 				</div>
- 				<div class="form-group">
- 					<label for="input3">작성자</label>
- 					<input type="text" class="form-control" id="input3" readonly value="${sessionScope.loggedInMember.nickName }">
- 				</div>
- 				
- 				<input type="hidden" name="writer" value="${sessionScope.loggedInMember.id }">
- 				
- 				<button class="btn btn-outline-primary" type="submit">등록</button>
- 			</form>
+ 			<h1>회원목록</h1>
+ 			
+ 			<!-- table.table>thead>tr>th*5^^tbody -->
+ 			<table class="table">
+ 				<thead>
+ 					<tr>
+ 						<th>아이디</th>
+ 						<th>닉네임</th>
+ 						<th>패스워드</th>
+ 						<th>이메일</th>
+ 						<th>주소</th>
+ 						<th>가입일시</th>
+ 						<th>작성글수</th>
+ 					</tr>
+ 				</thead>
+ 				<tbody>
+ 				<c:forEach items="${memberList }" var="member">
+ 					<tr>
+ 						<td>${member.id }</td>
+ 						<td>${member.nickName }</td>
+ 						<td>${member.password }</td>
+ 						<td>${member.email }</td>
+ 						<td>${member.address }</td>
+ 						<td>${member.inserted }</td>
+ 						<td>${member.numberOfBoard }</td>
+ 					</tr>
+ 				</c:forEach>
+ 				</tbody>
+ 			</table>
  		</div>
  	</div>
  </div>

@@ -7,14 +7,14 @@
  	
  	<insert id="insert">
  		INSERT INTO Member
- 			(id, password, email, address)
+ 			(id, password, email, address, nickName)
  		VALUES
- 			(#{id}, #{password}, #{email}, #{address})
+ 			(#{id}, #{password}, #{email}, #{address}, #{nickName})
  	</insert>
  	
  	<select id="select" resultType="org.zerock.domain.project01.MemberVO">
  		SELECT
- 			id, password, email, address, inserted
+ 			id, password, email, address, inserted, nickName
  		FROM
  			Member
  		WHERE id = #{id}
@@ -24,7 +24,8 @@
  		UPDATE Member SET
  			password = #{password},
  			email = #{email},
- 			address = #{address}
+ 			address = #{address},
+ 			nickName = #{nickName}
  		WHERE
  			id = #{id}
  	</update>
@@ -34,15 +35,20 @@
  	</delete>
  	
  	<select id="list" resultType="org.zerock.domain.project01.MemberVO">
- 		SELECT
- 			id,
- 			password,
- 			email,
- 			address,
- 			inserted
- 		FROM Member
- 		ORDER BY
- 			inserted DESC
+SELECT 
+    m.id,
+    m.password,
+    m.email,
+    m.address,
+    m.inserted,
+    m.nickName,
+    COUNT(b.id) AS numberOfBoard
+FROM
+    Member m
+        LEFT JOIN
+    Board b ON m.id = b.writer
+GROUP BY m.id
+ORDER BY m.inserted DESC
  	</select>
  
  </mapper>

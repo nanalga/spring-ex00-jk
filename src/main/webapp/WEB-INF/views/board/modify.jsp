@@ -35,8 +35,10 @@
  				</div>
  				<div class="form-group">
  					<label for="input3">작성자</label>
- 					<input type="text" class="form-control" id="input3" name="writer" value="${board.writer }" readonly>
+ 					<input type="text" class="form-control" id="input3" value="${board.nickName }" readonly>
  				</div>
+ 				
+ 				<input type="hidden" name="writer" value="${board.writer }">
  				
  				<button id="modifySubmitButton" class="btn btn-outline-primary" type="submit">수정</button>
 				<!-- button.btn.btn-outline-danger{삭제} -->
