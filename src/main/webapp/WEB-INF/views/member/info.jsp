@@ -34,7 +34,11 @@
  				</div>
  				<div class="form-group">
  					<label for="input3">패스워드</label>
- 					<input type="text" required id="input3" class="form-control" name="password" value="${sessionScope.loggedInMember.password }">
+ 					<input type="password" required id="input3" class="form-control" name="password" value="${sessionScope.loggedInMember.password }">
+ 				</div>
+ 				<div class="form-group">
+ 					<label for="input6">패스워드</label>
+ 					<input type="password" required id="input6" class="form-control">
  				</div>
  				<div class="form-group">
  					<label for="input4">이메일</label>
@@ -57,6 +61,7 @@
  
  <script>
  	$(document).ready(function(){
+ 		// 수정버튼 또는 삭제버튼 클릭 시 form의 action 속성값 변경
  		const infoForm = $("#infoForm");
  		
  		$("#modifyButton").click(function(e){
@@ -72,6 +77,27 @@
  	 			infoForm.submit();	
  			}
  		});
+ 		
+		// 패스워드, 패스워드 확인 인풋요소 값 일치 할때만 수정버튼 활성
+ 		const passwordInput = $("#input3");
+ 		const passwordConfirm = $("#input6");
+ 		const modifyButton = $("#mofifyButton");
+ 		
+ 		const confirmFunction = function(){
+ 			const paasswordInputValue = passwordInput.val();
+ 			const passwordConfirmValue = passwordConfirm.val();
+ 			
+ 			if(paasswordInputValue === passwordConfirmValue) {
+ 				modifyButton.removeAttr("disabled");
+ 			} else {
+ 				modifyButton.attr("disabled", true);
+ 			}
+ 		};
+ 		
+ 		modifyButton.attr("disabled", true);
+ 		passwordInput.keyup(confirmFunction);
+ 		passwordConfirm.keyup(confirmFunction);
+ 		
  	});
  </script>
  
