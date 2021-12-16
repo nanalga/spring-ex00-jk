@@ -54,6 +54,42 @@
  		</div>
  	</div>
  </div>
+ 
+ <!-- pageantion -->
+ <nav aria-label="Page navigation example">
+  <ul class="pagination justify-content-center">
+  	<c:if test="${pageInfo.hasPrevButton }">
+  		<c:url value="/member/list" var="pageLink">
+  			<c:param name="page" value="${pageInfo.currentPage - 1 }"></c:param>
+  		</c:url>
+    	<li class="page-item">
+      		<a class="page-link" href="${pageLink }" aria-label="Previous">
+        		<span aria-hidden="true">&laquo;</span>
+      		</a>
+    	</li>
+    </c:if>
+    
+    <c:forEach begin="${pageInfo.leftPageNumber }" end="${pageInfo.rightPageNumber }" var="pageNumber">
+    <c:url value="/member/list" var="pageLink">
+    	<c:param name="page" value="${pageNumber }"></c:param>
+    </c:url>
+    	<li class="page-item ${pageInfo.currentPage == pageNumber ? 'active' : '' }">
+    		<a class="page-link" href="${pageLink }">${pageNumber }</a>
+    	</li>
+    </c:forEach>
+    
+    <c:if test="${pageInfo.hasNextButton }">
+    	<c:url value="/member/list" var="pageLink">
+  			<c:param name="page" value="${pageInfo.currentPage + 1 }"></c:param>
+  		</c:url>
+    	<li class="page-item">
+      		<a class="page-link" href="${pageLink }" aria-label="Next">
+        		<span aria-hidden="true">&raquo;</span>
+      		</a>
+    	</li>
+    </c:if>
+  </ul>
+</nav>
 
  <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-fQybjgWLrvvRgtW6bFlB7jaZrFsaBXjsOMm/tB9LTS58ONXgqbR9W8oWht/amnpF" crossorigin="anonymous"></script>

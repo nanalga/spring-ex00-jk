@@ -5,6 +5,28 @@
   
  <mapper namespace="org.zerock.mapper.project01.MemberMapper">
  	
+ 	<select id="getCountRows" resultType="int">	<!-- id : 메소드명 resultType : return의 데이터 타입 -->
+ 		SELECT COUNT(*) FROM Member
+ 	</select>
+ 	
+ 	<select id="getListPage" resultType="org.zerock.domain.project01.MemberVO">
+SELECT 
+    m.id,
+    m.password,
+    m.email,
+    m.address,
+    m.inserted,
+    m.nickName,
+    COUNT(b.id) AS numberOfBoard
+FROM
+    Member m
+        LEFT JOIN
+    Board b ON m.id = b.writer
+GROUP BY m.id
+ORDER BY m.inserted DESC
+LIMIT #{from}, #{items}
+ 	</select>
+ 	
  	<insert id="insert">
  		INSERT INTO Member
  			(id, password, email, address, nickName)
