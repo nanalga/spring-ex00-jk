@@ -42,6 +42,14 @@ LIMIT #{from}, #{items}
  		WHERE id = #{id}
  	</select>
  	
+ 	<select id="selectNickName" resultType="org.zerock.domain.project01.MemberVO">
+ 	 	SELECT
+ 			id, password, email, address, inserted, nickName
+ 		FROM
+ 			Member
+ 		WHERE nickName = #{nickName}
+ 	</select>
+ 	
  	<update id="update" >
  		UPDATE Member SET
  			password = #{password},

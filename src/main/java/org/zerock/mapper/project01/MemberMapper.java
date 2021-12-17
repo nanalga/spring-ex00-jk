@@ -21,4 +21,6 @@ public interface MemberMapper {
 
 	public Integer getCountRows();
 
+	public MemberVO selectNickName(String nickName);
+
 }

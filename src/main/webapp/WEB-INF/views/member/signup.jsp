@@ -12,6 +12,7 @@
 
 <link rel="stylesheet" href="<%= request.getContextPath() %>/resource/css/icon/css/all.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css" integrity="sha384-zCbKRCUGaJDkqS1kPbPd7TveP5iyJE0EjAuZQTgFLD2ylzuqKfdKlfG/eSrtxUkn" crossorigin="anonymous">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
 <title>Insert title here</title>
 </head>
@@ -31,10 +32,20 @@
   			
   			<!-- form>.form-group*4>label[for=input$]+input.form-control#input$[required]^button.btn.btn-outline-primary{가입} -->
   			<form method="post">
+  				
   				<div class="form-group">
   					<label for="input1">아이디</label>
-  					<input type="text" class="form-control" id="input1" required name="id" value="${member.id }">
+  					<!-- .input-group>.input-group-append>button.btn.btn-secondary#idCheckButton{중복확인} -->
+  					<div class="input-group">
+  						<input type="text" class="form-control" id="input1" required name="id" value="${member.id }">
+  						<div class="input-group-append">
+  							<button class="btn btn-secondary" id="idCheckButton" type="button">중복확인</button>
+  						</div>
+  					</div>
+  					<!-- small.form-text#idCheckMessage -->
+  					<small class="form-text" id="idCheckMessage"></small>
   				</div>
+  				
   				<div class="form-group">
   					<label for="input2">패스워드</label>
   					<input type="password" class="form-control" id="input2" required name="password" value="${member.password }">
@@ -43,11 +54,20 @@
   					<label for="input6">패스워드 확인</label>
   					<input type="password" class="form-control" id="input6" required >
   				</div>
-  				<div class="form-group">
-  					<label for="input3">닉네임</label>
-  					<input type="text" class="form-control" id="input3" required name="nickName" value="${member.nickName }">
-  				</div>
-  				<div class="form-group">
+  				
+				<div class="form-group">
+					<label for="input3">닉네임</label>
+					<div class="input-group">
+						<input type="text" class="form-control" id="input3" required name="nickName" value="${member.nickName }">
+						<div class="input-group-append">
+							<button class="btn btn-secondary" type="button" id="nickNameCheckButton">닉네임 중복확인</button>
+						</div>
+					</div>
+					<!-- small.form-text#nickNameCheckMessage -->
+  					<small class="form-text" id="nickNameCheckMessage"></small>
+				</div>
+  				
+					<div class="form-group">
   					<label for="input4">이메일</label>
   					<input type="email" class="form-control" id="input4" required name="email" value="${member.email }">
   				</div>
@@ -61,33 +81,183 @@
   	</div>
   </div>
  	
-
- <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-fQybjgWLrvvRgtW6bFlB7jaZrFsaBXjsOMm/tB9LTS58ONXgqbR9W8oWht/amnpF" crossorigin="anonymous"></script>
  
  <script>
  $(document).ready(function(){
-	 // 두개의 인풋요소 값이 같을 때만 submit 버튼 활성화
-	 // 아니면 비활성화
-	 const passwordInput = $("#input2");
-	 const passwordConfirmInput = $("#input6");
-	 const submitButton = $("#submitButton1");
-	 
-	 const confirmFunction = function(){
-		const passwordValue = passwordInput.val();
-		const passwordConfirmValue = passwordConfirmInput.val();
+	// 두개의 인풋요소 값이 같을 때만 submit 버튼 활성화
+	// 아니면 비활성화
+	const passwordInput = $("#input2");
+	const passwordConfirmInput = $("#input6");
+	const submitButton = $("#submitButton1");
 		
-		// 두 인풋 요소의 값을 비교해서 서브밋 버튼 활성화 또는 비활성화
-		if(passwordValue === passwordConfirmValue) {
-			submitButton.removeAttr("disabled");	// removeAttr("disabled") -> attr("disabled") 삭제 -> 버튼 활성화
-		} else {
-			submitButton.attr("disabled", true);	// attr("disabled", true(값))에서는 -> 상관없이 disabled 상태
-		} 
-	 };
+	 // submit 버튼 활성화 조건 변수
+	 let idAble = false;
+	 let nickAble = false;
+	 let passwordCheck = false;
 	 
-	 submitButton.attr("disabled", true);	// submitButton 비활성화
-	 passwordInput.keyup(confirmFunction);	// keyup : keyboard에서 누르고 손땟을때의 이벤트, 패스워드 비교 메소드 실행
-	 passwordConfirmInput.keyup(confirmFunction);
+	 // submit 버튼 활성화 메소드
+	 let enableSubmit = function(){
+		 if (idAble && passwordCheck) {
+			 submitButton.removeAttr("disabled");
+		 } else {
+			 submitButton.attr("disabled", true);
+		 }
+	 } 
+	 
+	// contextPath
+	const appRoot = '${pageContext.request.contextPath}';
+	// 아이디 중복확인 버튼이 클릭되면
+	// 아이디 input요소에 입력된 값을
+	// 서버에 전송하고
+	// 응답받은 값에 따라서 
+	// 1) 서브밋 버튼 활성화 또는 비활성화 또는 비활성화 AND
+	// 2) 사용가능 또는 불가능 메세지 출력
+	
+	$("#idCheckButton").click(function(){		// 아이디 중복확인 버튼이 클릭되면
+		$("#idCheckButton").attr("disabled", true);
+		const idValue = $("#input1").val().trim();		// 아이디 input요소에 입력
+		// 아이디 input에 입력 안되었을 경우 더 이상 진행하지 않고
+		// 아이디 입력하라는 메세지 출력
+		if (idValue.trim() === "") {
+			$("#idCheckMessage")
+				.text("아이디를 입력해주세요.")
+				.removeClass("text-warning text-primary")
+				.addClass("text-danger");
+			$("#idCheckButton").removeAttr("disabled");
+			return ;
+		}
+		
+		$.ajax({				// 서버에 전송
+			url : appRoot + "/member/idcheck",
+			data : {	 	// url로 데이터전송
+				id : idValue
+			},
+			success : function(data){ // (controller)/member/idcheck에서 검사 결과 
+				switch (data) {
+				case "able":
+					// 사용 가능할 때
+					$("#idCheckMessage")
+						.text("사용가능한 아이디 입니다.")
+						.removeClass("text-danger text-warning")
+						.addClass("text-warning");
+					
+					// 서브밋 버튼 활성화 조건 추가
+					idAble = true;
+					break;
+				case "unable":
+					// 사용 불가능할 때
+					$("#idCheckMessage")
+						.text("이미 있는 아이디 입니다.")
+						.removeClass("text-warning text-primary")
+						.addClass("text-danger");
+					
+					// 서브밋 버튼 비활성화 조건 추가
+					idAble = false;
+					break;
+					
+				default:
+					break;
+				}
+			},
+			complete : function() {	// 요청 후 중복확인버튼 비활성화
+				enableSubmit();	// 조건이 충족되었을 때만 submit 버튼 활성화
+				$("#idCheckButton").removeAttr("disabled");
+			}
+			
+		});
+		
+	});
+		
+	// 닉네임 중복 확인 Ajax
+	$("#nickNameCheckButton").click(function(){		// 아이디 중복확인 버튼이 클릭되면
+		$("#nickNameCheckButton").attr("disabled", true);
+		const nickName = $("#input3").val().trim();		// 아이디 input요소에 입력
+		console.log(nickName);
+		// 아이디 input에 입력 안되었을 경우 더 이상 진행하지 않고
+		// 아이디 입력하라는 메세지 출력
+		if (nickName.trim() === "") {
+			$("#nickNameCheckMessage")
+				.text("닉네임을 입력해주세요.")
+				.removeClass("text-warning text-primary")
+				.addClass("text-danger");
+			$("#nickNameCheckButton").removeAttr("disabled");
+			return ;
+		}
+		
+		$.ajax({				// 서버에 전송
+			url : appRoot + "/member/nickNameCheck",
+			data : {	 	// url로 데이터전송
+				nickName : nickName
+			},
+			success : function(data){ // (controller)/member/idcheck에서 검사 결과 
+				switch (data) {
+				case "able":
+					// 사용 가능할 때
+					console.log("가능");
+					$("#nickNameCheckMessage")
+						.text("사용가능한 닉네임 입니다.")
+						.removeClass("text-danger text-warning")
+						.addClass("text-warning");
+					
+					// 서브밋 버튼 활성화 조건 추가
+					nickAble = true;
+					break;
+					
+				case "unable":
+					// 사용 불가능할 때
+					console.log("불가능");
+					$("#nickNameCheckMessage")
+						.text("이미 있는 닉네임 입니다.")
+						.removeClass("text-warning text-primary")
+						.addClass("text-danger");
+					
+					// 서브밋 버튼 비활성화 조건 추가
+					nickAble = false;
+					break;
+					
+				default:
+					break;
+				}
+			},
+			complete : function() {	// 요청 후 중복확인버튼 비활성화
+				enableSubmit();	// 조건이 충족되었을 때만 submit 버튼 활성화
+				$("#nickNameCheckButton").removeAttr("disabled");
+			}
+			
+		});
+		
+	});
+		
+
+	
+	
+	// *아래 코드 필요한 요소들 선택
+	 
+	// 암호 input과 함호 확인input값 비교해서 서브밋 버튼 활성화 또는 비활성화
+	const confirmFunction = function(){
+	const passwordValue = passwordInput.val();
+	const passwordConfirmValue = passwordConfirmInput.val();
+		
+	// 두 인풋 요소의 값을 비교해서 서브밋 버튼 활성화 또는 비활성화
+	if(passwordValue === passwordConfirmValue) {
+		// submitButton.removeAttr("disabled");	// removeAttr("disabled") -> attr("disabled") 삭제 -> 버튼 활성화
+		passwordCheck = true;
+	} else {
+		// submitButton.attr("disabled", true);	// attr("disabled", true(값))에서는 -> 상관없이 disabled 상태
+		passwordCheck = false;
+		}
+		
+		enableSubmit(); // 조건이 충족되었을 때만 submit버튼 활성화
+	};
+	 
+	submitButton.attr("disabled", true);	// submitButton 비활성화
+	passwordInput.keyup(confirmFunction);	// keyup : keyboard에서 누르고 손땟을때의 이벤트, 패스워드 비교 메소드 실행
+	passwordConfirmInput.keyup(confirmFunction);
+	 
+		 
+	 
+	 
  });
  </script>
  

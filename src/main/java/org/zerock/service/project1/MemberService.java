@@ -84,5 +84,17 @@ public class MemberService {
 		
 		return pageInfo;
 	}
+
+	public boolean hasId(String id) {
+		MemberVO member = mapper.select(id);
+				
+		return member != null;	// null : 중복id 없다/false
+	}
+
+	public boolean hasNickName(String nickName) {
+		MemberVO member = mapper.selectNickName(nickName);
+		
+		return member == null;
+	}
 	
 }
