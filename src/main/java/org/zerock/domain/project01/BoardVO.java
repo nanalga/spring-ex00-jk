@@ -16,6 +16,7 @@ public class BoardVO {
 	private LocalDateTime updated;
 	private String nickName;
 	
+
 	public String getCustomInserted() {
 		// 현재일시
 		LocalDateTime now = LocalDateTime.now(ZoneId.of("+09:00")); // 서울시간 기준

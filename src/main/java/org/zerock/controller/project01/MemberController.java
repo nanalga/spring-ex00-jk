@@ -35,10 +35,10 @@ public class MemberController {
 		
 		if(has) {
 			System.out.println(has);
-			return "able";
+			return "unable";
 		} else {
 			System.out.println(has);
-			return "unable";
+			return "able";
 		}
 	}
 	

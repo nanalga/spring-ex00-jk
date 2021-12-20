@@ -45,6 +45,8 @@ SELECT
     b.title,
     b.content,
     b.writer,
+    b.inserted,
+    b.updated,
     m.nickName
 FROM
     Board b

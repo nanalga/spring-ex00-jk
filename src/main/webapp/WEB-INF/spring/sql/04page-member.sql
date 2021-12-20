@@ -17,3 +17,6 @@ INSERT INTO Member (id, password, email, address, nickName)
 SELECT concat(prefix, id), 'pw', concat(prefix, id, '@gmail.com'), 'seoul', concat(prefix, id) FROM Mytable31;
 
 SELECT count(*) FROM Member;
+
+SELECT * FROM Board;
+DESC Board;

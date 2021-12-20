@@ -93,12 +93,12 @@
 		
 	 // submit 버튼 활성화 조건 변수
 	 let idAble = false;
-	 let nickAble = false;
 	 let passwordCheck = false;
+	 let nickNameAble = false;
 	 
 	 // submit 버튼 활성화 메소드
 	 let enableSubmit = function(){
-		 if (idAble && passwordCheck) {
+		 if (idAble && passwordCheck && nickNameAble) {
 			 submitButton.removeAttr("disabled");
 		 } else {
 			 submitButton.attr("disabled", true);
@@ -124,7 +124,7 @@
 				.text("아이디를 입력해주세요.")
 				.removeClass("text-warning text-primary")
 				.addClass("text-danger");
-			$("#idCheckButton").removeAttr("disabled");
+
 			return ;
 		}
 		
@@ -142,9 +142,12 @@
 						.removeClass("text-danger text-warning")
 						.addClass("text-warning");
 					
+					$("#input1").attr("readonly", true);
+					
 					// 서브밋 버튼 활성화 조건 추가
 					idAble = true;
 					break;
+					
 				case "unable":
 					// 사용 불가능할 때
 					$("#idCheckMessage")
@@ -172,11 +175,13 @@
 	// 닉네임 중복 확인 Ajax
 	$("#nickNameCheckButton").click(function(){		// 아이디 중복확인 버튼이 클릭되면
 		$("#nickNameCheckButton").attr("disabled", true);
+	
 		const nickName = $("#input3").val().trim();		// 아이디 input요소에 입력
+		
 		console.log(nickName);
-		// 아이디 input에 입력 안되었을 경우 더 이상 진행하지 않고
-		// 아이디 입력하라는 메세지 출력
-		if (nickName.trim() === "") {
+		// 닉네임 input에 입력 안되었을 경우 더 이상 진행하지 않고
+		// 닉네임 입력하라는 메세지 출력
+		if (nickName === "") {
 			$("#nickNameCheckMessage")
 				.text("닉네임을 입력해주세요.")
 				.removeClass("text-warning text-primary")
@@ -190,22 +195,25 @@
 			data : {	 	// url로 데이터전송
 				nickName : nickName
 			},
-			success : function(data){ // (controller)/member/idcheck에서 검사 결과 
+			success : function(data){ // (controller)/member/nickNameCheck에서 검사 결과 
 				switch (data) {
 				case "able":
-					// 사용 가능할 때
+					// 사용 가능 할 때
 					console.log("가능");
 					$("#nickNameCheckMessage")
 						.text("사용가능한 닉네임 입니다.")
-						.removeClass("text-danger text-warning")
+						.removeClass("text-danger text-danger")
 						.addClass("text-warning");
 					
+					$("#input3").attr("readonly", true);
+					
 					// 서브밋 버튼 활성화 조건 추가
-					nickAble = true;
+					nickNameAble = true;
+					
 					break;
 					
 				case "unable":
-					// 사용 불가능할 때
+					// 사용 불가능 할 때
 					console.log("불가능");
 					$("#nickNameCheckMessage")
 						.text("이미 있는 닉네임 입니다.")
@@ -213,11 +221,10 @@
 						.addClass("text-danger");
 					
 					// 서브밋 버튼 비활성화 조건 추가
-					nickAble = false;
+					nickNameAble = false;
+					
 					break;
 					
-				default:
-					break;
 				}
 			},
 			complete : function() {	// 요청 후 중복확인버튼 비활성화
@@ -246,7 +253,7 @@
 	} else {
 		// submitButton.attr("disabled", true);	// attr("disabled", true(값))에서는 -> 상관없이 disabled 상태
 		passwordCheck = false;
-		}
+	}
 		
 		enableSubmit(); // 조건이 충족되었을 때만 submit버튼 활성화
 	};

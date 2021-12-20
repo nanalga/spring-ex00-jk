@@ -94,7 +94,7 @@ public class MemberService {
 	public boolean hasNickName(String nickName) {
 		MemberVO member = mapper.selectNickName(nickName);
 		
-		return member == null;
+		return member != null;
 	}
 	
 }
