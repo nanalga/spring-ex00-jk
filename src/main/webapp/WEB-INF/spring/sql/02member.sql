@@ -75,8 +75,8 @@ GROUP BY m.id
 ORDER BY m.inserted DESC
 ;
 
-
-
+SELECT * FROM Member WHERE nickName = 'nickName5';
+SELECT * FROM Member;
 
 
 

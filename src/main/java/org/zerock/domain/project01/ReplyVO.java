@@ -6,19 +6,16 @@ import java.time.ZoneId;
 import lombok.Data;
 
 @Data
-public class BoardVO {
+public class ReplyVO {
 	
 	private Integer id;
-	private String title;
-	private String content;
-	private String writer;
-//	@JasonFormat(shape = Shape.String)
+	private Integer boardId;
+	private String memberId;
+	private String reply;
 	private LocalDateTime inserted;
-//	@JasonFormat(shape = Shape.String)
 	private LocalDateTime updated;
 	private String nickName;
 	
-
 	public String getCustomInserted() {
 		// 현재일시
 		LocalDateTime now = LocalDateTime.now(ZoneId.of("+09:00")); // 서울시간 기준
@@ -32,4 +29,5 @@ public class BoardVO {
 		}
 		
 	}
+
 }
