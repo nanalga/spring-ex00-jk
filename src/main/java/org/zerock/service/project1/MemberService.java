@@ -4,9 +4,12 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.zerock.domain.project01.MemberVO;
 import org.zerock.domain.project01.PageInfoVO;
+import org.zerock.mapper.project01.BoardMapper;
 import org.zerock.mapper.project01.MemberMapper;
+import org.zerock.mapper.project01.ReplyMapper;
 
 import lombok.Setter;
 
@@ -15,6 +18,12 @@ public class MemberService {
 	
 	@Setter(onMethod_ = @Autowired)
 	private MemberMapper mapper;
+	
+	@Setter(onMethod_ = @Autowired)
+	private ReplyMapper replymapper;
+	
+	@Setter(onMethod_ = @Autowired)
+	private BoardMapper boardMapper;
 	
 	public MemberVO read(String id) {
 		return mapper.select(id);
@@ -35,7 +44,13 @@ public class MemberService {
 		return mapper.update(member) == 1;
 	}
 	
+	@Transactional
 	public boolean remove(String id) {
+		// 1. 멤버가 작성한 댓글 지우기
+		replymapper.deleteByMemberId(id);
+		// 2. 멤버가 작성한 게시물 지우기
+		boardMapper.deleteByMemberId(id);
+		
 		return mapper.delete(id) == 1;
 	}
 	

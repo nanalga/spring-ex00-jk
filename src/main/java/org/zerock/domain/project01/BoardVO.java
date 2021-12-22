@@ -18,6 +18,7 @@ public class BoardVO {
 	private LocalDateTime updated;
 	private String nickName;
 	
+	private Integer replyCount;
 
 	public String getCustomInserted() {
 		// 현재일시

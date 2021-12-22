@@ -32,13 +32,72 @@ $(document).ready(function(){
 					<div class="media">
 					  <div class="media-body">
 					    <h5 class="mt-0"><i class="far fa-comment"></i>
-					    <span class="reply-nickName"></span>
+					   <span class="reply-nickName"></span>
 					    가 \${list[i].customInserted}에 작성</h5>
-					    <p class="reply-body"></p>
+					   <p class="reply-body" style="white-space: pre;"></p>
+					    
+						<div class="input-group" style="display:none;">
+							<textarea name="" id="replyTextarea\${list[i].id}" class="form-control"></textarea>
+							<div class="input-group-append">
+								<button class="btn btn-outline-secondary cancel-button"><i class="fas fa-ban"></i></button>
+								<button class="btn btn-outline-secondary" id="sendReply\${list[i].id}"><i class="far fa-comment-dots"></i></button>
+							</div>
+						</div>
 					  </div>
 					</div>`);
+					
+					replyMediaObject.find("#sendReply" + list[i].id).click(function(){
+						const reply = replyMediaObject.find("#replyTextarea" + list[i].id).val();
+						const data =  {
+								reply: reply
+						};
+						
+						$.ajax({
+							url : appRoot + "/reply/" + list[i].id,
+							type : "put",
+							contentType : "application/json",
+							data : JSON.stringify(data),
+							complete : function(){
+								listReply();  // 페이지 로딩 후 댓글 리스트 가져오는 함수 한 번 실행
+							}
+						});
+					});
+					
 					replyMediaObject.find(".reply-nickName").text(list[i].nickName);
 					replyMediaObject.find(".reply-body").text(list[i].reply);
+					replyMediaObject.find(".form-control").text(list[i].reply);	
+					replyMediaObject.find(".cancel-button").click(function(){
+						replyMediaObject.find(".reply-body").show();
+						replyMediaObject.find(".input-group").hide();
+					});
+					
+					if(list[i].own){
+						// 본인이 작성한 것만
+						// 수정버튼 추가
+						const modifyButton = $("<button class='btn btn-outline-secondary'><i class='far fa-edit'></i></button>");
+						modifyButton.click(function(){
+							$(this).parent().find('.reply-body').hide();
+							$(this).parent().find('.input-group').show();
+						});
+						
+						replyMediaObject.find(".media-body").append(modifyButton);
+						
+						// 삭제버튼 추가
+						const removeButton = $("<button class='btn btn-outline-danger'><i class='far fa-trash-alt'></i></button>");
+						removeButton.click(function(){
+							if(confirm("삭제하시겠습니까?")){
+								$.ajax({
+									url : appRoot + "/reply/" + list[i].id,
+									type : "delete",
+									complete : function(){
+										listReply();
+									}
+								});
+							}
+						});
+						
+						replyMediaObject.find(".media-body").append(removeButton);
+					}
 					
 					$("#replyListConatiner").append(replyMediaObject);
 				}
@@ -64,10 +123,15 @@ $(document).ready(function(){
 			type : "post",
 			data : data,
 			success : function(){
-				// 댓글 리스트 새로고침
-				listReply();
 				// textarea reset
 				$("#replyTextarea").val("");
+			},
+			error : function(){
+				alert("댓글이 작성되지 않았습니다. 권한이 있는지 확인하세요");
+			},			
+			complete : function(){
+				// 댓글 리스트 새로고침
+				listReply();
 			}
 		});
 	});

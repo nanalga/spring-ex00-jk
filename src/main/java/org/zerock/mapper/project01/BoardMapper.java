@@ -25,6 +25,8 @@ public interface BoardMapper {
 	public List<BoardVO> getListPage(@Param("from") Integer page, @Param("items") Integer numberPerPage);
 
 	public Integer getCountRows();
+
+	public int deleteByMemberId(String memberId);
 	
 	
 	
