@@ -1,5 +1,7 @@
 package org.zerock.controller.project01;
 
+import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.zerock.domain.project01.BoardVO;
 import org.zerock.domain.project01.PageInfoVO;
@@ -47,14 +50,24 @@ public class BoardController {
 	public void get(@RequestParam("id") Integer id, Model model) {
 		BoardVO board = service.get(id);
 		
+		String[] fileNames = service.getFileNamesByBoardId(id);
+		
+		model.addAttribute("board", board);
+		model.addAttribute("fileNames", fileNames);
+		
 		model.addAttribute("board", board);
 	}
 	
 	@PostMapping("/modify")
-	public String modify(BoardVO board, RedirectAttributes rttr) {
+	public String modify(BoardVO board, String[] removeFile, MultipartFile[] files, RedirectAttributes rttr) {
 		
-		if(service.modify(board)) {
-			rttr.addFlashAttribute("result", board.getId()+ "의 게시글이 수정되었습니다.");
+		try {
+			if(service.modify(board, removeFile, files)) {
+				rttr.addFlashAttribute("result", board.getId()+ "의 게시글이 수정되었습니다.");
+			}
+		} catch (IllegalStateException | IOException e) {
+			e.printStackTrace();
+			rttr.addFlashAttribute("result", board.getId()+ "번 게시글 수정 중 문제가 발생하였습니다.");
 		}
 		
 		// 게시물 조회로 redirect
@@ -72,13 +85,21 @@ public class BoardController {
 	}
 	
 	@PostMapping("/register")
-	public String register(BoardVO board, RedirectAttributes rttr) {
+	public String register(BoardVO board, MultipartFile[] files, RedirectAttributes rttr) {
 		
-		// 3. business logic
-		service.register(board);
-		
-		// 4. add attribute
-		rttr.addFlashAttribute("result", board.getId() + "번 게시글이 등록되었습니다.");
+		try {
+			// 3. business logic
+			service.register(board, files);
+			
+			// 4. add attribute
+			rttr.addFlashAttribute("result", board.getId() + "번 게시글이 등록되었습니다.");
+			
+		} catch (IllegalStateException | IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			
+			rttr.addFlashAttribute("result", "게시물 등록 중 오류가 발생하였습니다.");
+		}
 		
 		// 5. forward / redirect
 		// 책 : 목록으로 redirect

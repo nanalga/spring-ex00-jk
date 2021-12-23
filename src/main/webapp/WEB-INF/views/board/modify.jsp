@@ -22,7 +22,7 @@
  		<div class="col">
  			<h1>게시물 수정</h1>
  			<!-- form>.form-group*3>label[for=input$]+input.form-control#input$ -->
- 			<form id="modifyForm" method="post">
+ 			<form id="modifyForm" method="post" enctype="multipart/form-data">
  				<!-- input:hidden[value][name=id] -->
  				<input type="hidden" name="id" value="${board.id }">
  				<div class="form-group">
@@ -33,6 +33,29 @@
  					<label for="input2">내용</label>
  					<textarea type="text" class="form-control" id="input2" name="content">${board.content }</textarea>
  				</div>
+				<div class="row">
+				 	<div class="col-12">
+						<label for="">삭제할 파일 선택</label>
+					</div>
+				</div> 				
+ 				<!-- 이미지 출력 -->
+ 				<c:forEach items="${fileNames }" var="fileName">
+ 					<div class="row">
+ 					  	<div class="col-1 d-flex justify-content-center align-items-center">
+ 					  		<input class="form-check-input" type="checkbox" name="removeFile" value="${fileName }">
+ 					  	</div>
+ 						<div class="col-11">
+ 							<img class="img-fluid" src="/static/board/${board.id }/${fileName }" alt="${fileName }">
+ 						</div>
+ 					</div>
+ 				</c:forEach>
+ 				
+ 				<!-- .form-group>label[for=input4]+input[type=file].form-control-file#input4[name=files] -->
+ 				<div class="form-group">
+ 					<label for="input4">이미지 파일</label>
+ 					<input type="file" class="form-control-file" id="input4" name="files" accept="image/*" multiple>
+ 				</div>
+ 				
  				<div class="form-group">
  					<label for="input3">작성자</label>
  					<input type="text" class="form-control" id="input3" value="${board.nickName }" readonly>
