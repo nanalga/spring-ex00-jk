@@ -47,4 +47,4 @@ ADD FOREIGN KEY (memberId) REFERENCES Member(id);
 
 DESC Reply;
 
-SELECT * FROM Board;
+SELECT * FROM Member;

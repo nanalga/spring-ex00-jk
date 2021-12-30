@@ -54,8 +54,6 @@ public class BoardController {
 		
 		model.addAttribute("board", board);
 		model.addAttribute("fileNames", fileNames);
-		
-		model.addAttribute("board", board);
 	}
 	
 	@PostMapping("/modify")

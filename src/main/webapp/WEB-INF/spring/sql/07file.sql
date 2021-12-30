@@ -11,7 +11,7 @@ DESC File;
 
 SELECT * FROM File ORDER BY boardId DESC, id ASC;
 
-SELECT * FROM Board;
+SELECT * FROM Member ORDER BY inserted DESC ;
 
 INSERT INTO File (boardId, fileName)
 SELECT '1016' as boardId, fileName FROM File WHERE boardId = 1016;

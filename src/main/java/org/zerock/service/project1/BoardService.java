@@ -2,9 +2,13 @@ package org.zerock.service.project1;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 
+import javax.annotation.PostConstruct;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -15,6 +19,15 @@ import org.zerock.mapper.project01.FileMapper;
 import org.zerock.mapper.project01.ReplyMapper;
 
 import lombok.Setter;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.DeletedObject;
+import software.amazon.awssdk.services.s3.model.ObjectCannedACL;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 @Service
 public class BoardService {
@@ -25,10 +38,67 @@ public class BoardService {
 	@Setter(onMethod_ = @Autowired)
 	private ReplyMapper replyMapper;
 	
+	// aws image api 활용
+	@Value("${aws.accessKeyId}")	// @Value (Spring 사용)
+	private String accessKeyId;
+	
+	@Value("${aws.secretAccessKey}")
+	private String secretAccessKey;
+	
+	@Value("${aws.bucketName}")
+	private String bucketName;
+	
 	@Setter(onMethod_ = @Autowired)
 	private FileMapper fileMapper;
 	
+	// aws java library 사용
+	private Region region = Region.AP_NORTHEAST_2;
+	
+	private S3Client s3;
+	
 	private String staticRoot = "C:\\Users\\user\\Desktop\\COURS\\fileupload\\board\\";
+	
+	// aws
+	@PostConstruct
+	public void init() {
+		// spring bean이 만들어진 후 최초로 실행되는 코드 작성
+		
+		// 권한 정보 객체
+		AwsBasicCredentials credentials = AwsBasicCredentials.create(accessKeyId, secretAccessKey);
+		
+		// crud 가능한 s3 client 객체 생성
+		this.s3 = S3Client.builder()
+				.credentialsProvider(StaticCredentialsProvider.create(credentials))
+				.region(region)
+				.build();
+		
+		System.out.println("############ s3 cilent ############");
+		System.out.println(s3);
+	}
+	
+	// s3에서 key에 해당하는 객체 삭제
+	// 객체(이미지 파일) 업로드/지우기
+	private void deleteObject(String key) {
+		DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
+																	.bucket(bucketName)
+																	.key(key)
+																	.build(); 
+		
+		s3.deleteObject(deleteObjectRequest);
+	}
+	
+	// s3에서 key로 객체 업로드(put)
+	private void putObject(String key, Long size, InputStream source) {
+		PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+															.bucket(bucketName)
+															.key(key)
+															.acl(ObjectCannedACL.PUBLIC_READ)
+															.build();
+		
+		RequestBody requestBody = RequestBody.fromInputStream(source, size);
+		
+		s3.putObject(putObjectRequest, requestBody);
+	}
 	
 	public boolean register(BoardVO board) {
 		return mapper.insert(board) == 1;
@@ -48,16 +118,13 @@ public class BoardService {
 		replyMapper.deleteByBoardId(id);
 		
 		// 2. 파일 지우기
-		// file system 지우기
+		// s3에서 삭제
 		String[] files = fileMapper.selectNamesByBoardId(id);
 		
 		if(files != null) {
 			for(String file : files) {
-				String path = staticRoot + id + "\\" + file;
-				File target = new File(path);
-				if(target.exists()) {
-					target.delete();
-				}
+				String key = "board/" + id + "/" + file;
+				deleteObject(key);
 			}
 		}
 		
@@ -90,7 +157,7 @@ public class BoardService {
 		// 페이지네이션 가장 왼쪽 번호
 		Integer leftPageNumber = (page - 1) / 10 * 10 + 1;
 		
-		// 페이지네이션 가장 왼쪽 번호
+		// 페이지네이션 가장 오른쪽 번호
 		Integer rightPageNumber = (page - 1) / 10 * 10 + 10;
 		// 가장 마지막 페이지를 넘어가지 않도록
 		rightPageNumber = rightPageNumber > lastPage ? lastPage : rightPageNumber;
@@ -121,21 +188,14 @@ public class BoardService {
 		register(board);
 		
 		// write files
-		String basePath = staticRoot + board.getId();
-		if(files[0].getSize() > 0) {
-			// files가 있을 때만 폴더 생성
-			// 1. 새 게시물 id 이름의 folder 만들기
-			File newFolder = new File(basePath);
-			newFolder.mkdirs();
-		}
-		// 2. 위 폴더에 files 쓰기
+		// 2.s3에 파일 업로드
 		for(MultipartFile file : files) {
 			
-			// 2.1 파일 작성, FILE SYSTEM
 			if(file != null && file.getSize() > 0) {
-				String path = basePath + "\\" + file.getOriginalFilename();
-				file.transferTo(new File(path));
-
+				// 2.1 파일 작성, s3
+				String key = "board/" + board.getId() + "/" + file.getOriginalFilename();
+				putObject(key, file.getSize(), file.getInputStream());
+				
 				// 2.2 insert into File , DATABASE
 				fileMapper.insert(board.getId(), file.getOriginalFilename());
 			}
@@ -148,20 +208,17 @@ public class BoardService {
 	}
 
 	@Transactional
-	public boolean modify(BoardVO board, String[] removeFile, MultipartFile[] files) throws IllegalStateException, IOException {
+	public boolean modify(BoardVO board, String[] removeFile, MultipartFile[] files)
+			throws IllegalStateException, IOException {
 		modify(board);
 		
 		String basePath = staticRoot + board.getId();
 		//파일 삭제
 		if(removeFile != null) {
 			for(String removeFileName : removeFile) {
-				// file system에서 삭제
-				String path = basePath + "\\" + removeFileName;
-				File target = new File(path);
-				
-				if(target.exists()) {
-					target.delete();
-				}
+				// s3에서 삭제
+				String key = "board/" + board.getId() + "/" + removeFileName;
+				deleteObject(key);
 				
 				// db table에서 삭제
 				fileMapper.delete(board.getId(), removeFileName);
@@ -169,25 +226,18 @@ public class BoardService {
 			}
 		}
 		
-		// 새 파일 추가
-		if(files[0].getSize() > 0)  {
-			// files가 있을 때만 폴더 생성
-			// 1. 새 게시물 id 이름의 folder 만들기
-			File newFolder = new File(basePath);
-			newFolder.mkdirs();
-		}
+		// 새 파일 추가(s3)
 		
 		for(MultipartFile file : files) {
 			if(file != null && file.getSize() > 0) {
-				// 1. write file to fileSystem
-				File newFile = new File(staticRoot + "\\" + board.getId() + "\\" + file.getOriginalFilename());
+				// 1. write file s3
+				String key = "board/" + board.getId() + "/" + file.getOriginalFilename();
 				
-				if(!newFile.exists()) {
-					// 2. db 파일명 insert
-					fileMapper.insert(board.getId(), file.getOriginalFilename());
-				}
+				putObject(key, file.getSize(), file.getInputStream());
 				
-				file.transferTo(newFile);
+				// 2. db에 파일명 변경
+				fileMapper.delete(board.getId(), file.getOriginalFilename());
+				fileMapper.insert(board.getId(), file.getOriginalFilename());
 
 			}
 		}

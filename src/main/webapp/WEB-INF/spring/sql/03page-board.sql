@@ -1,5 +1,6 @@
 USE test;
 DESC Board;
+DESC Reply;
 DESC Member;
 SELECT COUNT(*) FROM Board;
 
